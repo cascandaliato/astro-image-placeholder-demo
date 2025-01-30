@@ -1,0 +1,38 @@
+---
+import sharp from "sharp";
+import unsplash from "../assets/unsplash.png";
+
+// Based on: https://tia.mat.br/posts/2024/09/18/blurhash-like-without-js.html
+async function getBase64Placeholder(imagePath: string): Promise<string> {
+  const convertedImage = sharp(imagePath)
+    .resize(16, 16, { fit: "fill" })
+    .gif({ reuse: false, colors: 8, dither: 1 });
+  return (await convertedImage.toBuffer()).toString("base64");
+}
+
+const placeholder = await getBase64Placeholder(
+  import.meta.env.PROD
+    ? `./dist${unsplash.src.replace(import.meta.env.BASE_URL, "")}`
+    : unsplash.src.replaceAll(/(?:\/@fs|\?.*)/g, "")
+);
+---
+
+<img
+  src={unsplash.src}
+  alt="A kitchen with a stove, sink, and cabinets"
+  style={`background: url(data:image/gif;base64,${placeholder});
+		  background-repeat: no-repeat;
+		  background-size: cover;`}
+  width="1887"
+  height="2831"
+/>
+
+<br /><br />
+length of base64 encoding: {placeholder.length} characters
+
+<style is:global>
+  img {
+    width: auto;
+    height: 80vh;
+  }
+</style>
